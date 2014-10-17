@@ -1,0 +1,12 @@
+[root]
+name = "lava"
+version = "0.0.1"
+dependencies = [
+ "markdown 0.0.1 (git+https://github.com/johannhof/markdown.rs.git#9b802b93643e64acf231f114a630627663cff50e)",
+]
+
+[[package]]
+name = "markdown"
+version = "0.0.1"
+source = "git+https://github.com/johannhof/markdown.rs.git#9b802b93643e64acf231f114a630627663cff50e"
+
