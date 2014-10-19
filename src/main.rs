@@ -1,9 +1,11 @@
 extern crate markdown;
 extern crate getopts;
-use getopts::{optopt,optflag,getopts,OptGroup, usage, short_usage, Matches};
+
+use getopts::{optopt,optflag,getopts, usage, short_usage, Matches};
 use std::os;
 use std::io;
 use std::io::fs;
+use std::io::File;
 use std::io::fs::PathExtensions;
 
 fn build(matches: Matches) {
@@ -12,22 +14,49 @@ fn build(matches: Matches) {
         None => Path::new("./")
     };
 
-    println!("Printing out {}", source.display());
+    let dest = match matches.opt_str("d"){
+        Some(x) => Path::new(x),
+        None => Path::new("./_site/")
+    };
 
-    let dest = Path::new("./_site/");
+    println!("Generating from {} to {}", source.display(), dest.display());
+
     fs::mkdir(&dest, io::USER_RWX);
 
-    match copy_recursive(&source, &dest, |p| -> bool {
-        !p.filename_str().unwrap().starts_with(".") &&
-        !(p.path_relative_from(&source).unwrap().as_str().unwrap() == "articles")
-    })  {
-        Err(why) => println!("! {}", why.kind),
-        _ => {}
+    match fs::walk_dir(&source.join("_pages")) {
+        Err(why) => println!("! {}", why.detail),
+        Ok(mut paths) => for path in paths {
+            render_file(&path);
+        }
+    }
+
+    if source != dest {
+        match copy_recursive(&source, &dest, |p| -> bool {
+            !p.filename_str().unwrap().starts_with(".") &&
+            !(p.path_relative_from(&source).unwrap().as_str().unwrap() == "articles")
+        }) {
+            Err(why) => println!("! {}", why.detail),
+            _ => {}
+        }
     }
 
     println!("Testing markdown integration");
     let text = markdown::to_html("This is a *text*");
     println!("{}", text);
+
+    println!("Done");
+}
+
+fn render_file(path : &Path) {
+    let mut file = File::open(path);
+    let content = match file.read_to_string(){
+        Ok(x) => x,
+        Err(e) => {
+            println!("Could not read file {} : {}", path.display(), e)
+            return;
+        }
+    };
+    println!("{}", content);
 }
 
 fn copy_recursive(source: &Path, dest: &Path, valid: |&Path| -> bool) -> io::IoResult<()> {
