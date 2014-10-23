@@ -1,9 +1,9 @@
 [package]
 
 name = "lava"
-version = "0.0.1"
-authors = ["Johann <git@johann-hofmann.com>"]
+version = "0.1.0"
+authors = ["Johann <mail@johann-hofmann.com>"]
 
 [dependencies.markdown]
-
 git = "https://github.com/johannhof/markdown.rs.git"
+
